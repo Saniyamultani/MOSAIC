@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Alias of ./ocr (distribution name). Agents may resolve either name.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec bash "$ROOT/bin/ocr" "$@"

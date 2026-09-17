@@ -1,0 +1,20 @@
+{
+  "name": "ocr-skill",
+  "interface": {
+    "displayName": "OCR Skill"
+  },
+  "plugins": [
+    {
+      "name": "ocr-codex",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ocr-codex"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

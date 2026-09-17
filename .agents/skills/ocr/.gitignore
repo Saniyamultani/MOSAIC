@@ -1,0 +1,54 @@
+# Raw idea (local only)
+docs/IDEA.md
+.research/
+
+# Internal agent instruction files
+CLAUDE.md
+AGENTS.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+# Python build trees
+/build/
+*.egg-info/
+# Bundled CLI lives in dist/; do not ignore it
+*.so
+
+# Virtualenv / uv / skill-local bootstrap
+.venv/
+venv/
+.tools/
+.python-version
+
+# Test / coverage / cache
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Local Claude / Grok state
+.claude/
+.grok/
+
+# Local secrets / cache
+.env
+docker/.env
+.cache/
+*.png
+*.jpg
+*.jpeg
+*.pdf
+!fixtures/**
+!tests/fixtures/**

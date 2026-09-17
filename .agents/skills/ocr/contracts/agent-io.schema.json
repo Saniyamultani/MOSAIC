@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hec-ovi/ocr-skill/contracts/agent-io.schema.json",
+  "title": "AgentIO",
+  "description": "Layer 4 agent-facing extract and open payloads (data field of the Envelope).",
+  "x-contract-version": "1.0.0",
+  "oneOf": [
+    { "$ref": "#/$defs/ExtractResult" },
+    { "$ref": "#/$defs/OpenResult" }
+  ],
+  "$defs": {
+    "ExtractResult": {
+      "type": "object",
+      "required": ["documents"],
+      "additionalProperties": false,
+      "properties": {
+        "documents": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "format.schema.json" }
+        }
+      }
+    },
+    "OpenResult": {
+      "allOf": [{ "$ref": "format.schema.json" }]
+    }
+  }
+}

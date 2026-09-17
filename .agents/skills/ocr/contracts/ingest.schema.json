@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hec-ovi/ocr-skill/contracts/ingest.schema.json",
+  "title": "Ingest",
+  "description": "Layer 1: turn a local image or PDF path into ordered page media refs. No OCR.",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "required": ["source_path", "source_kind", "page_count", "pages", "work_dir"],
+  "additionalProperties": false,
+  "properties": {
+    "source_path": { "type": "string" },
+    "source_kind": { "type": "string", "enum": ["image", "pdf"] },
+    "page_count": { "type": "integer", "minimum": 1 },
+    "work_dir": {
+      "type": "string",
+      "description": "Directory holding rendered page images for this job."
+    },
+    "pages": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/PageMedia" }
+    }
+  },
+  "$defs": {
+    "PageMedia": {
+      "type": "object",
+      "required": ["page", "path", "media_type", "width", "height", "byte_size", "checksum"],
+      "additionalProperties": false,
+      "properties": {
+        "page": { "type": "integer", "minimum": 1 },
+        "path": { "type": "string" },
+        "media_type": { "type": "string", "enum": ["image/png", "image/jpeg", "image/webp"] },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "byte_size": { "type": "integer", "minimum": 0 },
+        "checksum": {
+          "type": "string",
+          "description": "sha256 hex of the page image bytes"
+        }
+      }
+    }
+  }
+}

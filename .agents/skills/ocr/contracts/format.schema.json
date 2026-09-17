@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hec-ovi/ocr-skill/contracts/format.schema.json",
+  "title": "Format",
+  "description": "Layer 3: multi-page Markdown assembly, optional fence, and pagination. Full body is always stored; pages do not drop content.",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "required": [
+    "handle",
+    "source_path",
+    "source_kind",
+    "page_count",
+    "mode",
+    "markdown",
+    "fenced",
+    "content",
+    "page",
+    "total_pages",
+    "has_more",
+    "page_tokens",
+    "total_tokens",
+    "untrusted",
+    "fence"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "handle": {
+      "type": "string",
+      "description": "Stable id for open/pagination, e.g. file~shorthash"
+    },
+    "source_path": { "type": "string" },
+    "source_kind": { "type": "string", "enum": ["image", "pdf"] },
+    "page_count": { "type": "integer", "minimum": 1 },
+    "mode": { "type": "string", "enum": ["markdown", "free", "figure", "ocr"] },
+    "markdown": {
+      "type": "string",
+      "description": "Full unfenced Markdown for all source pages (never truncated)."
+    },
+    "fenced": { "type": "boolean" },
+    "content": {
+      "type": "string",
+      "description": "One token-budget page of fenced (or raw) Markdown for the agent."
+    },
+    "page": { "type": "integer", "minimum": 1 },
+    "total_pages": { "type": "integer", "minimum": 1 },
+    "has_more": { "type": "boolean" },
+    "page_tokens": { "type": "integer", "minimum": 0 },
+    "total_tokens": { "type": "integer", "minimum": 0 },
+    "untrusted": { "type": "boolean" },
+    "fence": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["nonce", "open_marker", "close_marker"],
+          "additionalProperties": false,
+          "properties": {
+            "nonce": { "type": "string" },
+            "open_marker": { "type": "string" },
+            "close_marker": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "backend": { "type": ["string", "null"] },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    }
+  }
+}

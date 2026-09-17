@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hec-ovi/ocr-skill/contracts/init.schema.json",
+  "title": "Init",
+  "description": "Bring the OCR skill online and report capability state.",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "required": ["state", "ready", "backend", "model", "device", "capabilities", "next_actions"],
+  "additionalProperties": false,
+  "properties": {
+    "state": { "type": "string", "enum": ["ready", "degraded", "broken"] },
+    "ready": { "type": "boolean" },
+    "backend": { "type": "string" },
+    "model": { "type": ["string", "null"] },
+    "device": { "type": ["string", "null"] },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["ok", "degraded", "down", "off", "unknown"]
+      }
+    },
+    "next_actions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "doctor": { "description": "Optional embedded doctor payload" }
+  }
+}

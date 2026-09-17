@@ -1,0 +1,45 @@
+# OPTIONAL. MOSAIC runs with no infrastructure at all (SQLite + a local
+# embedder + the relational graph store). Bring this up only when you want to
+# demonstrate the full architecture: Postgres + Neo4j + Qdrant.
+#
+#   docker compose up -d
+#   cd backend && cp .env.example .env      # then set the three backends below
+#
+#   DATABASE_URL=postgresql+psycopg://mosaic:mosaic@localhost:5432/mosaic
+#   GRAPH_BACKEND=neo4j
+#   VECTOR_BACKEND=qdrant
+#
+#   pip install "psycopg[binary]" neo4j qdrant-client
+#   python -m app.seed --reset
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mosaic
+      POSTGRES_PASSWORD: mosaic
+      POSTGRES_DB: mosaic
+    ports: ["5432:5432"]
+    volumes: ["mosaic_pg:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mosaic"]
+      interval: 5s
+      retries: 10
+
+  neo4j:
+    image: neo4j:5-community
+    environment:
+      NEO4J_AUTH: neo4j/mosaic-dev
+      NEO4J_PLUGINS: '["apoc"]'
+    ports: ["7474:7474", "7687:7687"]
+    volumes: ["mosaic_neo4j:/data"]
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports: ["6333:6333"]
+    volumes: ["mosaic_qdrant:/qdrant/storage"]
+
+volumes:
+  mosaic_pg:
+  mosaic_neo4j:
+  mosaic_qdrant:

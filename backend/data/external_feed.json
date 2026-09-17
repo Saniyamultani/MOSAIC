@@ -1,0 +1,122 @@
+{
+  "_comment": "Approved external sources and their items. This local feed is what makes the demo reproducible offline; set ENABLE_NETWORK_RESEARCH=true to add live RSS sources alongside it. Trust tiers follow the spec: 1 = government/regulator, 2 = manufacturer official, 3 = retailer, 4 = service provider, 5 = reputable publication, 6 = general web.",
+  "sources": [
+    {
+      "key": "samsung_newsroom",
+      "name": "Samsung Newsroom (official)",
+      "kind": "fixture",
+      "url": "https://news.samsung.com/in/",
+      "category": "service_program",
+      "trust_tier": 2
+    },
+    {
+      "key": "consumer_safety",
+      "name": "Consumer Product Safety Notices",
+      "kind": "fixture",
+      "url": "https://www.cpsc.gov/Recalls",
+      "category": "recall",
+      "trust_tier": 1
+    },
+    {
+      "key": "nvd",
+      "name": "NIST National Vulnerability Database",
+      "kind": "fixture",
+      "url": "https://services.nvd.nist.gov/rest/json/cves/2.0",
+      "category": "security_update",
+      "trust_tier": 1
+    },
+    {
+      "key": "provider_notices",
+      "name": "Service provider notices",
+      "kind": "fixture",
+      "url": "https://about.netflix.com/en/newsroom",
+      "category": "price_change",
+      "trust_tier": 2
+    },
+    {
+      "key": "tech_press",
+      "name": "Technology press wire",
+      "kind": "fixture",
+      "url": "https://example.com/tech-wire",
+      "category": "external_update",
+      "trust_tier": 5
+    }
+  ],
+  "items": [
+    {
+      "source": "samsung_newsroom",
+      "external_id": "sam-2026-09-01-s26-display",
+      "title": "Samsung expands the Galaxy S26 display service programme in India",
+      "url": "https://news.samsung.com/in/galaxy-s26-display-service-programme",
+      "category": "service_program",
+      "published_at": "2026-08-28T09:00:00+00:00",
+      "affected_models": ["SM-S926B", "SM-S928B"],
+      "affected_brands": ["Samsung"],
+      "region": "India",
+      "deadline": "2026-12-31",
+      "action_url": "https://www.samsung.com/in/support/service-center/",
+      "body": "Samsung has extended its display service programme to cover the Galaxy S26 and Galaxy S26 Ultra sold in India. Units with model codes SM-S926B and SM-S928B manufactured before June 2026 may develop a green line across the display. Affected units are eligible for a free panel replacement at authorised service centres until 31 December 2026, regardless of whether the standard warranty has expired. Owners should check the model code on the box or in Settings > About phone before booking a service appointment."
+    },
+    {
+      "source": "samsung_newsroom",
+      "external_id": "sam-2026-08-20-oneui-patch",
+      "title": "September security patch released for the Galaxy S26 series",
+      "url": "https://security.samsungmobile.com/securityUpdate.smsb",
+      "category": "security_update",
+      "published_at": "2026-08-20T06:00:00+00:00",
+      "affected_models": ["SM-S926B", "SM-S928B", "SM-S921B"],
+      "affected_brands": ["Samsung"],
+      "region": "Global",
+      "body": "The September security maintenance release is rolling out to the Galaxy S26 series, including the Galaxy S26 Ultra. It patches two critical vulnerabilities in the bootloader and one in the media framework. Devices on One UI 7.1 will receive the update over the air; it can also be pulled manually from Settings > Software update."
+    },
+    {
+      "source": "consumer_safety",
+      "external_id": "cpsc-2026-08-15-bravia-power",
+      "title": "Recall: Sony BRAVIA XR-55A80K power boards may overheat",
+      "url": "https://www.cpsc.gov/Recalls/2026/sony-bravia-xr-55a80k",
+      "category": "recall",
+      "published_at": "2026-08-15T12:00:00+00:00",
+      "affected_models": ["XR-55A80K"],
+      "affected_brands": ["Sony"],
+      "region": "India",
+      "deadline": "2026-11-30",
+      "body": "Sony is recalling a production batch of 55-inch BRAVIA XR-55A80K OLED televisions after reports of the internal power board overheating. Only units with model code XR-55A80K and serial numbers beginning 82 are affected. Owners of other BRAVIA models, including the 65-inch variants, are not affected and need take no action."
+    },
+    {
+      "source": "nvd",
+      "external_id": "CVE-2026-31887",
+      "title": "CVE-2026-31887: authentication bypass in TP-Link Archer AX55 firmware before 1.0.9",
+      "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-31887",
+      "category": "security_update",
+      "published_at": "2026-08-25T18:30:00+00:00",
+      "affected_models": ["ARCHER-AX55"],
+      "affected_brands": ["TP-Link"],
+      "region": "Global",
+      "body": "An authentication bypass in the web management interface of TP-Link Archer AX55 routers running firmware earlier than 1.0.9 allows a remote attacker on the local network to obtain administrative access. TP-Link has published firmware 1.0.9 addressing the issue."
+    },
+    {
+      "source": "provider_notices",
+      "external_id": "netflix-2026-08-30-in-pricing",
+      "title": "Netflix revises Premium plan pricing in India from October 2026",
+      "url": "https://about.netflix.com/en/newsroom/india-plan-update-2026",
+      "category": "price_change",
+      "published_at": "2026-08-30T05:00:00+00:00",
+      "affected_brands": ["Netflix"],
+      "product_hint": "Netflix",
+      "region": "India",
+      "deadline": "2026-10-01",
+      "body": "Netflix is revising plan prices in India from 1 October 2026. The Premium plan moves from Rs 649 to Rs 749 per month. Existing members will see the new price on their first billing date after 1 October and will receive a notification 30 days in advance. Members can change or cancel their plan at any time from Account settings."
+    },
+    {
+      "source": "tech_press",
+      "external_id": "wire-2026-08-29-fold",
+      "title": "Foldable shipments grew 14% last quarter, analysts say",
+      "url": "https://example.com/tech-wire/foldables-q2-2026",
+      "category": "external_update",
+      "published_at": "2026-08-29T11:00:00+00:00",
+      "affected_brands": [],
+      "region": "Global",
+      "body": "Global foldable smartphone shipments grew 14 percent year on year last quarter, according to a new market tracker report. Analysts attribute the growth to lower entry prices and improved hinge durability across the category."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "ocr-codex",
+  "version": "0.4.1",
+  "description": "Local image and PDF OCR to Markdown for Codex agents via the ocr CLI (DeepSeek-OCR-2). Stdio only, no MCP.",
+  "author": {
+    "name": "Hector Oviedo",
+    "url": "https://github.com/hec-ovi"
+  },
+  "homepage": "https://github.com/hec-ovi/ocr-skill",
+  "repository": "https://github.com/hec-ovi/ocr-skill",
+  "license": "MIT",
+  "keywords": [
+    "ocr",
+    "pdf",
+    "markdown",
+    "deepseek-ocr",
+    "agent-skills"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "OCR",
+    "shortDescription": "Image and PDF to Markdown via local DeepSeek-OCR-2",
+    "longDescription": "Shell out to the ocr CLI to extract exact text from local images and PDFs, with fenced untrusted output and progressive pagination.",
+    "developerName": "Hector Oviedo",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "websiteURL": "https://github.com/hec-ovi/ocr-skill",
+    "defaultPrompt": [
+      "Use /ocr <path> to extract text from a local image or PDF."
+    ],
+    "screenshots": [],
+    "brandColor": "#1F6FEB"
+  }
+}

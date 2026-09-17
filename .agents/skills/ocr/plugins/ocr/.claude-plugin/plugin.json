@@ -1,0 +1,21 @@
+{
+  "name": "ocr",
+  "displayName": "OCR",
+  "version": "0.4.1",
+  "description": "Extract text from images and PDFs into Markdown for AI agents. Portable SKILL, ocr CLI (extract/open/init/doctor), contract layers, untrusted fence, DeepSeek-OCR-2 engine. No MCP; agents shell out over stdio.",
+  "author": {
+    "name": "Hector Oviedo",
+    "url": "https://github.com/hec-ovi"
+  },
+  "homepage": "https://github.com/hec-ovi/ocr-skill",
+  "repository": "https://github.com/hec-ovi/ocr-skill",
+  "license": "MIT",
+  "keywords": [
+    "ocr",
+    "pdf",
+    "markdown",
+    "deepseek-ocr",
+    "ai-agents",
+    "agent-skills"
+  ]
+}

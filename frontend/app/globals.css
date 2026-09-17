@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: #faf7f2;
+  color: #1e2a3a;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-line rounded-2xl shadow-card;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 text-[11px] font-medium tracking-wide
+           uppercase px-2.5 py-1 rounded-md border;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2
+           text-sm font-medium transition-colors disabled:opacity-50
+           disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-ink text-paper hover:bg-ink-soft;
+  }
+  .btn-ghost {
+    @apply btn border border-line text-ink-soft hover:bg-paper;
+  }
+  .label {
+    @apply text-[11px] uppercase tracking-[0.12em] text-ink-faint font-medium;
+  }
+}
+
+/* React Flow surface tuned to the calm palette */
+.react-flow__attribution {
+  display: none;
+}
+.react-flow__edge-path {
+  stroke: #d8d1c6;
+  stroke-width: 1.5;
+}
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #4a6c8c;
+  stroke-width: 2;
+}
+.react-flow__edge-text {
+  font-size: 9px;
+  fill: #8a93a0;
+}
+.mosaic-node {
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
+}
+.mosaic-node.is-selected {
+  transform: scale(1.06);
+  box-shadow: 0 10px 30px -12px rgba(30, 42, 58, 0.35);
+}

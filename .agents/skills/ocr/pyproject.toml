@@ -1,0 +1,106 @@
+[project]
+name = "ocr-skill"
+version = "0.4.1"
+description = "Image and PDF to Markdown OCR skill and CLI for AI agents (DeepSeek-OCR-2, contract-driven, harness-portable, no MCP)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Hector Oviedo" }]
+keywords = [
+    "ocr",
+    "pdf",
+    "markdown",
+    "deepseek-ocr",
+    "ai-agents",
+    "agent-skills",
+    "claude-skill",
+    "document-understanding",
+    "uvx",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+    "pydantic>=2.7",
+    "Pillow>=10.0",
+    # PDF page rasterization without poppler (Apache-2.0).
+    "pypdfium2>=4.30",
+]
+
+[project.optional-dependencies]
+schema = ["jsonschema>=4.21"]
+# Real DeepSeek-OCR-2 stack. Versions match the upstream HF card guidance loosely;
+# pin tighter in your env if flash-attn / CUDA need it.
+deepseek = [
+    "torch>=2.4",
+    "transformers>=4.46",
+    "tokenizers>=0.20",
+    "einops>=0.8",
+    "addict>=2.4",
+    "easydict>=1.13",
+]
+
+[project.scripts]
+# Two names: `ocr` is canonical; `ocr-skill` matches the distribution so
+# `uvx ocr-skill extract ...` works with no --from.
+ocr = "ocrskill.cli:main"
+ocr-skill = "ocrskill.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/hec-ovi/ocr-skill"
+Repository = "https://github.com/hec-ovi/ocr-skill"
+Issues = "https://github.com/hec-ovi/ocr-skill/issues"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "jsonschema>=4.21",
+    "ruff>=0.6",
+    "pyyaml>=6.0.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ocrskill"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/ocrskill",
+    "tests",
+    "contracts",
+    "docs",
+    "skills",
+    "plugins",
+    "scripts",
+    "references",
+    "fixtures",
+    "bin",
+    "dist/ocr",
+    "dist/README.md",
+    "ocr",
+    "ocr-skill",
+    "SKILL.md",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

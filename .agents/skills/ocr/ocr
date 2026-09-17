@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Skill-root launcher for agent packs (e.g. noob: .noob/skills/ocr/ocr).
+# Same behavior as bin/ocr.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec bash "$ROOT/bin/ocr" "$@"

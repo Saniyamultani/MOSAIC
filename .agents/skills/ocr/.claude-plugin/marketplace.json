@@ -1,0 +1,33 @@
+{
+  "name": "ocr-skill",
+  "owner": {
+    "name": "Hector Oviedo"
+  },
+  "metadata": {
+    "description": "Image and PDF to Markdown OCR for AI agents via a portable skill and ocr CLI (DeepSeek-OCR-2). Stdio only, no MCP.",
+    "version": "0.4.1"
+  },
+  "plugins": [
+    {
+      "name": "ocr",
+      "source": "./plugins/ocr",
+      "description": "Extract text from images and PDFs into Markdown for AI agents. Portable SKILL, ocr CLI (extract/open/init/doctor), contract layers, untrusted fence, DeepSeek-OCR-2 engine. No MCP; agents shell out over stdio.",
+      "version": "0.4.1",
+      "author": {
+        "name": "Hector Oviedo"
+      },
+      "homepage": "https://github.com/hec-ovi/ocr-skill",
+      "repository": "https://github.com/hec-ovi/ocr-skill",
+      "license": "MIT",
+      "category": "productivity",
+      "keywords": [
+        "ocr",
+        "pdf",
+        "markdown",
+        "deepseek-ocr",
+        "ai-agents",
+        "agent-skills"
+      ]
+    }
+  ]
+}

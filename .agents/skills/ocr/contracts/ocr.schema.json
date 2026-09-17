@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hec-ovi/ocr-skill/contracts/ocr.schema.json",
+  "title": "OCR",
+  "description": "Layer 2: OCR engine result for one page image. Engine adapters implement the same shape.",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "required": ["page", "markdown", "mode", "backend", "elapsed_ms"],
+  "additionalProperties": false,
+  "properties": {
+    "page": { "type": "integer", "minimum": 1 },
+    "markdown": {
+      "type": "string",
+      "description": "Extracted text as Markdown (or plain text for free mode). Never truncated by the engine."
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["markdown", "free", "figure", "ocr"],
+      "description": "Engine prompt family: markdown (document layout), free (plain text), figure (charts/plots), ocr (general grounded OCR)."
+    },
+    "backend": { "type": "string" },
+    "elapsed_ms": { "type": "number", "minimum": 0 },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    }
+  }
+}

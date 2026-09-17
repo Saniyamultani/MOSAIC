@@ -1,0 +1,65 @@
+name: ocr-skill
+
+# DeepSeek-OCR-2 (GGUF) on llama.cpp Vulkan, same host pattern as
+# llama-vulkan-strix: ghcr.io/ggml-org/llama.cpp:server-vulkan, /dev/dri only,
+# GTT via GGML_VK_PREFER_HOST_MEMORY. No ROCm, no privileged, no build.
+#
+# Config: docker/.env (cp docker/.env.example docker/.env)
+# Bring up from repo root:
+#   docker compose -f docker/docker-compose.yml --env-file docker/.env up -d
+# Point the skill at it:
+#   export OCR_BACKEND=llamacpp
+#   export OCR_LLAMA_URL=http://127.0.0.1:${OCR_PORT:-8090}
+
+services:
+  ocr-llm:
+    image: ghcr.io/ggml-org/llama.cpp:server-vulkan
+    container_name: ocr-llama-vulkan
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${RENDER_GID:-990}"
+      - "${VIDEO_GID:-44}"
+    environment:
+      - GGML_VK_PREFER_HOST_MEMORY=1
+    volumes:
+      - ${MODELS_DIR:-/home/hec/models/gguf}:/models:ro
+    ports:
+      - "${OCR_PORT:-8090}:8080"
+    command:
+      - --model
+      - /models/${OCR_MODEL:?set OCR_MODEL in docker/.env relative to MODELS_DIR}
+      - --mmproj
+      - /models/${OCR_MMPROJ:?set OCR_MMPROJ in docker/.env relative to MODELS_DIR}
+      - --alias
+      - ${OCR_ALIAS:-ocr}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --n-gpu-layers
+      - "${OCR_NGL:-99}"
+      - --ctx-size
+      - "${OCR_CTX:-8192}"
+      - --parallel
+      - "${OCR_PARALLEL:-1}"
+      - --no-kv-unified
+      - --jinja
+      # OCR should be deterministic; sampling noise is garbled text.
+      - --temp
+      - "${OCR_TEMP:-0.0}"
+      - --top-k
+      - "${OCR_TOP_K:-1}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 40
+      start_period: 180s
+    networks:
+      - ocrnet
+
+networks:
+  ocrnet:
+    driver: bridge

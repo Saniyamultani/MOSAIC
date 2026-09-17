@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hec-ovi/ocr-skill/contracts/envelope.schema.json",
+  "title": "Envelope",
+  "description": "Cross-cutting wrapper for every inter-layer message and CLI --json output. contract_version is the semver of the producing layer's contract; additive fields are MINOR, removal/rename/type-change/meaning-change is MAJOR.",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "required": ["contract_version", "ok", "data", "error", "meta"],
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "ok": { "type": "boolean" },
+    "data": {
+      "description": "Layer-specific payload (object | array | null)."
+    },
+    "error": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/Error" }]
+    },
+    "meta": { "$ref": "#/$defs/Meta" }
+  },
+  "$defs": {
+    "Error": {
+      "type": "object",
+      "required": ["code", "message", "retriable"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "retriable": { "type": "boolean" },
+        "hint": { "type": ["string", "null"] }
+      }
+    },
+    "Meta": {
+      "type": "object",
+      "required": ["layer", "backend", "elapsed_ms"],
+      "additionalProperties": true,
+      "properties": {
+        "layer": { "type": "string" },
+        "backend": { "type": ["string", "null"] },
+        "elapsed_ms": { "type": "number", "minimum": 0 },
+        "trace_id": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

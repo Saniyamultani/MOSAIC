@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Skill-pack CLI entry. ONLY the bundled binary (dist/ocr).
+# Never pip, never uv, never venv: agents must not spread packages around.
+#
+# Layout:
+#   <root>/ocr              thin wrapper -> bin/ocr
+#   <root>/bin/ocr          this file
+#   <root>/dist/ocr         self-contained binary (required)
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUNDLE="$ROOT/dist/ocr"
+
+if [[ ! -x "$BUNDLE" ]]; then
+  echo "ocr: missing bundled CLI at $BUNDLE (broken skill pack; rebuild with scripts/build-bundle.sh)" >&2
+  exit 127
+fi
+
+# Probe so a wrong-arch ELF fails with a clear message instead of a cryptic loader error.
+if ! "$BUNDLE" --version >/dev/null 2>&1; then
+  echo "ocr: cannot run $BUNDLE on this host (need Linux x86_64 musl, e.g. noob Alpine). Do not pip/uv install." >&2
+  exit 127
+fi
+
+exec "$BUNDLE" "$@"

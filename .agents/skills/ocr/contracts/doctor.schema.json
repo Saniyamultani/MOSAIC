@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hec-ovi/ocr-skill/contracts/doctor.schema.json",
+  "title": "Doctor",
+  "description": "Installation self-test result.",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "required": ["status", "checks", "ready"],
+  "additionalProperties": false,
+  "properties": {
+    "status": { "type": "string", "enum": ["ready", "degraded", "broken"] },
+    "ready": { "type": "boolean" },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status", "detail"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string", "enum": ["ok", "warn", "fail", "skipped"] },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "next_actions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    }
+  }
+}
