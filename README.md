@@ -53,6 +53,49 @@ npm run dev
 ```
 </details>
 
+## Deploy to Vercel
+
+This repository is configured as a Vercel Services project: the root
+`vercel.json` builds the Next.js frontend from `frontend/` and the FastAPI
+backend from `backend/`, then routes `/api/*` requests to the backend. The
+backend entrypoint is `app.main:app`.
+
+1. Import the GitHub repository into Vercel. Set the project's **Root
+   Directory** to the repository root (not `frontend/` or `backend/`), so
+   Vercel can read the root `vercel.json`. Services may require beta access on
+   your Vercel account.
+2. Configure persistent PostgreSQL storage before using the app. The default
+   SQLite database is a local development database and is not suitable for
+   Vercel's serverless functions. Set the Vercel environment variable
+   `DATABASE_URL` for each environment you deploy (Production, and Preview if
+   needed) to your provider's connection string in this format:
+
+   ```text
+   postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE
+   ```
+
+   The PostgreSQL driver is currently listed as an optional, commented
+   dependency in `backend/requirements.txt`. Uncomment
+   `psycopg[binary]>=3.1` there and push that change before deploying with
+   PostgreSQL. Keep the database URL and password in Vercel's Environment
+   Variables; do not commit credentials to the repository.
+3. Deploy the project. The frontend calls `/api/...` on the same domain, so
+   `NEXT_PUBLIC_API_URL` should normally be left unset.
+4. Verify the backend by visiting
+   `https://YOUR-VERCEL-DOMAIN/api/health`. A healthy API returns JSON with
+   `"status": "ok"`. Then refresh the site's home page.
+
+Vercel functions are serverless and do not provide a continuously running
+process. The in-process monitoring scheduler is intended for local development;
+do not rely on it to run continuously on Vercel. Use the app's manual monitoring
+action or configure a supported external/cron trigger if scheduled monitoring is
+needed.
+
+If the site stays on “Loading…” or reports that the backend cannot be reached,
+check the latest deployment's build and Function Logs in Vercel. A 404 from
+`/api/health` usually means the deployment is not using the repository-root
+`vercel.json` or the backend service did not build.
+
 ### Turning on Gemini
 
 MOSAIC ships with a deterministic rule-based extractor so it works with no API key.
