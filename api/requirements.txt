@@ -1,0 +1,24 @@
+# --- core (everything MOSAIC needs to run) ---------------------------------
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30
+sqlalchemy>=2.0,<3.0
+pydantic>=2.7
+pydantic-settings>=2.3
+python-multipart>=0.0.9
+httpx>=0.27
+numpy>=1.26
+apscheduler>=3.10,<4.0
+feedparser>=6.0
+langgraph>=0.2
+pymupdf>=1.24
+pytesseract>=0.3.10
+pillow>=10.0
+
+# --- dev -------------------------------------------------------------------
+pytest>=8.0
+
+# --- optional: uncomment what you actually want -----------------------------
+# sentence-transformers    # real embeddings instead of the local hashing embedder
+# qdrant-client>=1.9       # VECTOR_BACKEND=qdrant
+# neo4j>=5.20              # GRAPH_BACKEND=neo4j
+# psycopg[binary]>=3.1     # DATABASE_URL=postgresql+psycopg://...

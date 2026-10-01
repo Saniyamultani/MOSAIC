@@ -18,6 +18,8 @@ logging.basicConfig(
 log = logging.getLogger("mosaic")
 
 
+import os
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
@@ -28,9 +30,13 @@ async def lifespan(app: FastAPI):
         ResearchAgent(db).ensure_sources()
     log.info("MOSAIC ready — LLM=%s, graph=%s, vectors=%s",
              settings.resolved_llm_provider, settings.graph_backend, settings.vector_backend)
-    start_scheduler()
+    is_vercel = bool(os.environ.get("VERCEL"))
+    if settings.enable_scheduler and not is_vercel:
+        start_scheduler()
     yield
-    stop_scheduler()
+    if settings.enable_scheduler and not is_vercel:
+        stop_scheduler()
+
 
 
 app = FastAPI(

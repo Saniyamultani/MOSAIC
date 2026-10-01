@@ -1,9 +1,11 @@
 {
-  "name": "mosaic-frontend",
+  "name": "mosaic-fullstack",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently -k -n \"backend,frontend\" -c \"blue,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "next dev",
+    "dev:backend": "python -m uvicorn backend.app.main:app --reload --port 8000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -19,6 +21,7 @@
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "autoprefixer": "10.4.19",
+    "concurrently": "^8.2.2",
     "postcss": "8.4.39",
     "tailwindcss": "3.4.6",
     "typescript": "5.5.3"

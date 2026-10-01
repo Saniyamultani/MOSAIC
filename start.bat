@@ -26,51 +26,26 @@ python -m pip install -q -r requirements.txt
 if errorlevel 1 exit /b 1
 
 if /I "%1"=="--fresh" goto :seed
-if exist data\mosaic.db goto :api_check
+if exist data\mosaic.db goto :frontend_setup
 :seed
 echo Seeding the demo...
 python -m app.seed --reset
 if errorlevel 1 exit /b 1
 
-:api_check
-set API_PID=
-for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":8000 .*LISTENING"') do set API_PID=%%P
-if defined API_PID goto :api_running
-echo Starting the API on http://localhost:8000 ...
-start "MOSAIC API" cmd /k "cd /d %ROOT%backend && call .venv\Scripts\activate.bat && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
-goto :frontend
-
-:api_running
-echo API already running on http://localhost:8000 (PID %API_PID%).
-
-:frontend
-cd /d "%ROOT%frontend"
-if exist node_modules goto :web_check
-echo Installing frontend packages...
+:frontend_setup
+cd /d "%ROOT%"
+if exist node_modules goto :start_fullstack
+echo Installing Node.js packages...
 call npm install --no-audit --no-fund
 if errorlevel 1 exit /b 1
 
-:web_check
-set WEB_PID=
-for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":3000 .*LISTENING"') do set WEB_PID=%%P
-if defined WEB_PID goto :web_running
-
-if not exist .next goto :start_web
-echo Removing stale Next.js build output...
-rmdir /s /q .next
-
-:start_web
+:start_fullstack
 echo.
 echo MOSAIC is starting. Open http://localhost:3000
 echo API docs: http://localhost:8000/docs
 echo.
 call npm run dev
 exit /b %errorlevel%
-
-:web_running
-echo Frontend already running on http://localhost:3000 (PID %WEB_PID%).
-echo Reuse that browser tab instead of starting a second Next.js server.
-exit /b 0
 
 :no_python
 echo ERROR: Python was not found on PATH.

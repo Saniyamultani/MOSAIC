@@ -29,15 +29,10 @@ if [ ! -f data/mosaic.db ] || [ -n "$FRESH" ]; then
   python -m app.seed ${FRESH:---reset}
 fi
 
-echo "Starting the API on http://localhost:8000 …"
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-API_PID=$!
-trap 'kill $API_PID 2>/dev/null || true' EXIT
-
-# --- frontend --------------------------------------------------------------
-cd "$ROOT/frontend"
+# --- fullstack --------------------------------------------------------------
+cd "$ROOT"
 if [ ! -d node_modules ]; then
-  echo "Installing frontend packages…"
+  echo "Installing Node.js packages…"
   npm install --no-audit --no-fund
 fi
 
