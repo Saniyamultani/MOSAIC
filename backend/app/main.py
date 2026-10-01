@@ -19,15 +19,31 @@ log = logging.getLogger("mosaic")
 
 
 import os
+from sqlalchemy import select
+from .models import Document
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
-    with session_scope() as db:
-        get_or_create_demo_user(db)
-        from .agents.research import ResearchAgent
+    try:
+        init_db()
+        with session_scope() as db:
+            user = get_or_create_demo_user(db)
+            has_docs = db.execute(select(Document).where(Document.user_id == user.id)).first()
+            if not has_docs:
+                try:
+                    from .seed import seed
+                    seed(reset=False, monitor=True)
+                except Exception as seed_exc:
+                    log.warning("Auto-seed notice during startup: %s", seed_exc)
+            else:
+                try:
+                    from .agents.research import ResearchAgent
+                    ResearchAgent(db).ensure_sources()
+                except Exception as res_exc:
+                    log.warning("ensure_sources notice during startup: %s", res_exc)
+    except Exception as exc:
+        log.warning("Lifespan database startup notice: %s", exc)
 
-        ResearchAgent(db).ensure_sources()
     log.info("MOSAIC ready — LLM=%s, graph=%s, vectors=%s",
              settings.resolved_llm_provider, settings.graph_backend, settings.vector_backend)
     is_vercel = bool(os.environ.get("VERCEL"))
@@ -36,6 +52,7 @@ async def lifespan(app: FastAPI):
     yield
     if settings.enable_scheduler and not is_vercel:
         stop_scheduler()
+
 
 
 

@@ -20,13 +20,14 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..config import DATA_DIR, settings
+from ..config import BASE_DIR, DATA_DIR, settings
 from ..models import ExternalItem, Source, utcnow
 from ..rag.store import EXTERNAL, get_vector_store
 from .base import Agent, Trace
 
 log = logging.getLogger("mosaic.research")
-FIXTURE_PATH = Path(DATA_DIR) / "external_feed.json"
+FIXTURE_PATH = BASE_DIR / "data" / "external_feed.json"
+
 
 
 def _parse_dt(value) -> datetime | None:
