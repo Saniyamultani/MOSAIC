@@ -10,7 +10,11 @@ if str(backend_dir) not in sys.path:
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-from app.main import app as fastapi_app
+try:
+    from app.main import app as fastapi_app
+except ImportError:
+    from backend.app.main import app as fastapi_app
 
 # Top-level FastAPI instance for Vercel Python Serverless Runtime
 app = fastapi_app
+
