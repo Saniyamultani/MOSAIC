@@ -53,6 +53,20 @@ body {
   font-size: 9px;
   fill: #8a93a0;
 }
+.react-flow__controls {
+  overflow: hidden;
+  border: 1px solid #e5ded4;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(70, 60, 50, 0.08);
+}
+.react-flow__controls-button {
+  color: #5d5a52;
+  background: #fffdf9;
+  border-bottom: 1px solid #eee8df;
+}
+.react-flow__controls-button:hover {
+  background: #f5f0e8;
+}
 .mosaic-node {
   transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
 }

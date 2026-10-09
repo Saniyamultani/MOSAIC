@@ -17,7 +17,7 @@ os.environ.setdefault("ENABLE_SCHEDULER", "false")
 
 from app.db import SessionLocal, init_db  # noqa: E402
 from app.graphstore.factory import get_graph_store  # noqa: E402
-from app.models import Alert  # noqa: E402
+from app.models import Alert, Base  # noqa: E402
 from app.llm.offline import OfflineProvider  # noqa: E402
 from app.services import (  # noqa: E402
     confirm_ingestion,
@@ -32,6 +32,9 @@ from app.services import (  # noqa: E402
 def db():
     init_db()
     session = SessionLocal()
+    for table in reversed(Base.metadata.sorted_tables):
+        session.execute(table.delete())
+    session.commit()
     yield session
     session.close()
 

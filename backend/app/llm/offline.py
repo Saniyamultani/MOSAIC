@@ -186,6 +186,16 @@ class OfflineProvider(LLMProvider):
             elif current_section == "warranties" and line_s.startswith("-"):
                 warranties.append(line_s.lstrip("- ").strip())
 
+        if (
+            "warranty" in low_q
+            and "bank" in low_q
+            and any(term in low_q for term in ("which", "who", "issuer", "issued"))
+        ):
+            return (
+                "I can't determine which bank issued the warranty from your records. "
+                "A bank listed as a payment method is not evidence that it issued the warranty."
+            )
+
         # Target scenario 1: Warranty inquiry ("Is it under warranty?")
         if any(k in low_q for k in ("warranty", "covered", "guarantee")):
             return (
@@ -304,6 +314,15 @@ class OfflineProvider(LLMProvider):
             if l.startswith("RESOLVED") or l.isupper() or l.endswith(":"):
                 continue
             formatted_lines.append(l if l.startswith("-") else f"- {l}")
+
+        # Check if question specifies a specific asset category (e.g. car, vehicle, bike, house)
+        specific_keywords = ["car", "vehicle", "automobile", "bike", "scooter", "laptop", "phone", "tv", "router", "house", "apartment"]
+        queried_category = next((kw for kw in specific_keywords if kw in low_q), None)
+        if queried_category:
+            matching_lines = [l for l in formatted_lines if queried_category in l.lower()]
+            if not matching_lines:
+                return f"No record found for '{queried_category}' in MOSAIC. You haven't logged or uploaded any {queried_category} details yet."
+            formatted_lines = matching_lines
 
         if formatted_lines:
             body_text = "\n".join(formatted_lines)

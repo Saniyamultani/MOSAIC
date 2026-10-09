@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "reactflow/dist/style.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import Assistant from "@/components/Assistant";
+import AppFrame from "@/components/AppFrame";
+import { AuthProvider } from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "MOSAIC | Personal Intelligence Workspace",
@@ -14,13 +13,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="font-sans min-h-screen bg-paper flex flex-col justify-between">
-        <div>
-          <Header />
-          <main className="mx-auto w-full max-w-6xl px-5 pb-24 pt-8">{children}</main>
-        </div>
-        <Footer />
-        <Assistant />
+      <body className="font-sans min-h-screen bg-paper">
+        <AuthProvider>
+          <AppFrame>{children}</AppFrame>
+        </AuthProvider>
       </body>
     </html>
   );

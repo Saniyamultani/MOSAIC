@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { api, ExtractionResult, formatFieldLabel } from "@/lib/api";
+import { api, DocumentEvaluation, ExtractionResult, formatFieldLabel } from "@/lib/api";
 
 const EXAMPLES = [
   "I bought a Samsung Galaxy S26 Ultra (SM-S926B) from Amazon for Rs 79,999 on 12 May 2026, paid with my HDFC card.",
@@ -30,6 +30,9 @@ export default function AddPage() {
   const [result, setResult] = useState<ExtractionResult | null>(null);
   const [fields, setFields] = useState<Record<string, any>>({});
   const [confirmed, setConfirmed] = useState<any>(null);
+  const [evaluation, setEvaluation] = useState<DocumentEvaluation | null>(null);
+  const [evaluationLoading, setEvaluationLoading] = useState(false);
+  const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
@@ -37,6 +40,9 @@ export default function AddPage() {
     setConfirmed(null);
     setFields({});
     setError(null);
+    setEvaluation(null);
+    setEvaluationError(null);
+    setEvaluationLoading(false);
   };
 
   const extract = async () => {
@@ -66,6 +72,14 @@ export default function AddPage() {
     try {
       const res = await api.confirm(result.document.id, result.thread_id, fields);
       setConfirmed(res);
+      setEvaluationLoading(true);
+      try {
+        setEvaluation(await api.evaluateDocument(result.document.id));
+      } catch (e) {
+        setEvaluationError(String(e));
+      } finally {
+        setEvaluationLoading(false);
+      }
     } catch (e) {
       setError(String(e));
     } finally {
@@ -246,6 +260,94 @@ export default function AddPage() {
               ))}
             </div>
           )}
+          <div className="mt-5 rounded-xl border border-line bg-paper/70 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="font-semibold text-ink">RAGAS-style retrieval evaluation</h3>
+                <p className="mt-0.5 text-xs text-ink-faint">
+                  Post-upload retrieval checks for this document
+                </p>
+              </div>
+              {evaluation && (
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    evaluation.checks.every((check) => check.passed)
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-900"
+                  }`}
+                >
+                  {evaluation.checks.every((check) => check.passed) ? "Checks passed" : "Review checks"}
+                </span>
+              )}
+            </div>
+            {evaluationLoading && (
+              <p className="mt-3 text-sm text-ink-soft">Checking the private retrieval index…</p>
+            )}
+            {evaluationError && (
+              <p role="alert" className="mt-3 text-sm text-red-700">
+                Evaluation could not be completed: {evaluationError}
+              </p>
+            )}
+            {evaluation && (
+              <>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {[
+                    {
+                      label: "Context precision",
+                      value: evaluation.metrics.context_precision,
+                      detail: evaluation.metrics.context_precision_definition,
+                    },
+                    {
+                      label: "Context recall",
+                      value: evaluation.metrics.context_recall,
+                      detail: evaluation.metrics.context_recall_definition,
+                    },
+                  ].map((metric) => (
+                    <div key={metric.label} className="rounded-lg border border-line/70 bg-white/70 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
+                        {metric.label}
+                      </p>
+                      <p className="mt-1 font-serif text-2xl text-ink">
+                        {(metric.value * 100).toFixed(0)}%
+                      </p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-ink-soft">{metric.detail}</p>
+                    </div>
+                  ))}
+                </div>
+                <ul className="mt-3 space-y-2">
+                  {evaluation.checks.map((check) => (
+                    <li key={check.name} className="flex gap-2 text-sm">
+                      <span className={check.passed ? "text-emerald-700" : "text-amber-700"}>
+                        {check.passed ? "✓" : "!"}
+                      </span>
+                      <span>
+                        <span className="font-medium text-ink">{check.name}:</span>{" "}
+                        <span className="text-ink-soft">{check.actual}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {evaluation.retrieved_documents.length > 0 && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-xs font-medium text-ink-soft">
+                      Retrieved document evidence ({evaluation.retrieved_documents.length})
+                    </summary>
+                    <ul className="mt-2 space-y-1 text-xs text-ink-faint">
+                      {evaluation.retrieved_documents.map((document, index) => (
+                        <li key={document.document_id}>
+                          {index + 1}. {document.title} · similarity {document.score.toFixed(3)}
+                          {document.matches_uploaded_document ? " · this upload" : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+                <p className="mt-3 border-t border-line/60 pt-3 text-[11px] leading-relaxed text-ink-faint">
+                  {evaluation.note}
+                </p>
+              </>
+            )}
+          </div>
           <div className="mt-5 flex gap-2">
             <Link href="/graph" className="btn-primary">
               Open the Life Graph

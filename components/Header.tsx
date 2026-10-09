@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 const NAV = [
   { href: "/", label: "Dashboard" },
@@ -14,6 +15,7 @@ const NAV = [
 
 export default function Header() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const [unread, setUnread] = useState<number | null>(null);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function Header() {
       alive = false;
       clearInterval(timer);
     };
-  }, [pathname]);
+  }, [pathname, user]);
 
   return (
     <header className="border-b border-line bg-paper/85 backdrop-blur sticky top-0 z-40">
@@ -41,7 +43,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-1.5">
           {NAV.map((item) => {
             const active =
               item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -49,7 +51,7 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-lg px-3.5 py-1.5 text-sm transition-colors ${
+                className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
                   active
                     ? "bg-ink text-paper"
                     : "text-ink-soft hover:bg-line/50 hover:text-ink"
@@ -59,10 +61,11 @@ export default function Header() {
               </Link>
             );
           })}
+
           <Link
             href="/radar"
             aria-label="Notifications"
-            className="relative ml-2 flex h-9 w-9 items-center justify-center rounded-lg border border-line text-ink-soft hover:bg-line/40"
+            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-line text-ink-soft hover:bg-line/40"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
               <path d="M18 8A6 6 0 1 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" strokeLinecap="round" strokeLinejoin="round" />
@@ -74,6 +77,31 @@ export default function Header() {
               </span>
             )}
           </Link>
+
+          {user ? (
+            <div className="flex items-center gap-1 ml-1 pl-1 border-l border-line">
+              <Link
+                href="/profile"
+                className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                  pathname === "/profile"
+                    ? "bg-accent/15 text-accent"
+                    : "text-ink hover:bg-line/50"
+                }`}
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-white">
+                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </span>
+                <span className="hidden sm:inline max-w-[100px] truncate">{user.name}</span>
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="ml-1 rounded-lg border border-line bg-paper px-3 py-1.5 text-sm font-medium text-ink hover:bg-line/50 transition-colors"
+            >
+              Log In
+            </Link>
+          )}
         </nav>
       </div>
     </header>

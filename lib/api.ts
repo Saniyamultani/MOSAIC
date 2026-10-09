@@ -1,13 +1,40 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "";
 
+export function getAuthToken(): string | null {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("mosaic_token");
+  }
+  return null;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {};
+
+  if (!(init?.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  if (init?.headers) {
+    if (init.headers instanceof Headers) {
+      init.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+    } else if (Array.isArray(init.headers)) {
+      init.headers.forEach(([key, value]) => {
+        headers[key] = value;
+      });
+    } else {
+      Object.assign(headers, init.headers);
+    }
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers: {
-      ...(init?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
-      ...(init?.headers || {}),
-    },
+    headers,
     cache: "no-store",
   });
   if (!res.ok) {
@@ -94,6 +121,27 @@ export interface ExtractionResult {
   awaiting_confirmation: boolean;
 }
 
+export interface DocumentEvaluation {
+  document_id: string;
+  method: string;
+  query: string;
+  note: string;
+  metrics: {
+    context_precision: number;
+    context_precision_definition: string;
+    context_recall: number;
+    context_recall_definition: string;
+  };
+  checks: { name: string; passed: boolean; actual: string }[];
+  retrieved_documents: {
+    document_id: string;
+    title: string;
+    score: number;
+    matches_uploaded_document: boolean;
+  }[];
+  extracted_fields: Record<string, unknown>;
+}
+
 /* ---------- calls ---------- */
 
 export const api = {
@@ -129,6 +177,8 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ thread_id: threadId, overrides }),
     }),
+  evaluateDocument: (documentId: string) =>
+    request<DocumentEvaluation>(`/api/documents/${documentId}/evaluation`),
   askAssistant: (question: string, conversationId?: string) =>
     request<{ answer: string; conversation_id: string; provider: string; entities?: any[]; sources?: any[]; evidence?: any[] }>("/api/assistant", {
       method: "POST",
@@ -150,6 +200,26 @@ export const api = {
   listChats: () => request<{ chats: any[] }>("/api/assistant/chats"),
   getChat: (id: string) => request<any>(`/api/assistant/chats/${id}`),
   deleteChat: (id: string) => request<any>(`/api/assistant/chats/${id}`, { method: "DELETE" }),
+
+  // Auth & Profile
+  signup: (data: { name: string; email: string; password: string }) =>
+    request<{ user: any; token: string }>("/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  login: (data: { email: string; password: string }) =>
+    request<{ user: any; token: string }>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  logout: () => request<{ status: string }>("/api/auth/logout", { method: "POST" }),
+  me: () => request<{ user: any }>("/api/auth/me"),
+  getProfile: () => request<{ user_id: string; name: string; email: string; profile: any }>("/api/profile"),
+  updateProfile: (body: any) =>
+    request<{ user_id: string; name: string; email: string; profile: any }>("/api/profile", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
 };
 
 /* ---------- presentation helpers ---------- */
@@ -162,15 +232,21 @@ export const SEVERITY = {
 } as const;
 
 export const NODE_STYLE: Record<string, { bg: string; border: string; text: string }> = {
-  product: { bg: "#EFECF8", border: "#C9C0E4", text: "#4A3F7A" },
-  brand: { bg: "#E9EFF5", border: "#AFC3D6", text: "#3B5A76" },
-  retailer: { bg: "#E9EFE7", border: "#B4C7B0", text: "#3F5C40" },
-  warranty: { bg: "#FBEDE2", border: "#EFC9AC", text: "#8A5330" },
-  subscription: { bg: "#F3ECF6", border: "#D7C2E0", text: "#6B4577" },
-  payment_method: { bg: "#F1EFEA", border: "#DAD3C6", text: "#5A5346" },
-  bill: { bg: "#FBEDE2", border: "#EFC9AC", text: "#8A5330" },
-  event: { bg: "#E9EFF5", border: "#AFC3D6", text: "#3B5A76" },
-  default: { bg: "#F2F0EC", border: "#DDD7CC", text: "#4A5568" },
+  product:        { bg: "#E8E1F2", border: "#C2B4D5", text: "#57466B" },
+  asset:          { bg: "#E8E1F2", border: "#C2B4D5", text: "#57466B" },
+  purchase:       { bg: "#F8EBDD", border: "#E7CBAA", text: "#705A45" },
+  brand:          { bg: "#E5ECF2", border: "#C3D0DB", text: "#536675" },
+  retailer:       { bg: "#E7EFE5", border: "#C6D6C1", text: "#50644F" },
+  service:        { bg: "#E7EFE5", border: "#C6D6C1", text: "#50644F" },
+  warranty:       { bg: "#F8EBDD", border: "#E8D0AE", text: "#765E3F" },
+  subscription:   { bg: "#F0E9F4", border: "#D6C5E2", text: "#675474" },
+  payment_method: { bg: "#F5EDE5", border: "#DFCEBD", text: "#6D5948" },
+  bill:           { bg: "#F5E8E6", border: "#E6C6C2", text: "#75504D" },
+  expense:        { bg: "#F5E8E6", border: "#E6C6C2", text: "#75504D" },
+  document:       { bg: "#E5EDF5", border: "#C4D4E3", text: "#506477" },
+  alert:          { bg: "#FEE2E2", border: "#EF4444", text: "#7F1D1D" },
+  event:          { bg: "#E5EDF5", border: "#C4D4E3", text: "#506477" },
+  default:        { bg: "#F0EFEB", border: "#D4D1C8", text: "#5D5A52" },
 };
 
 export function nodeStyle(type: string) {

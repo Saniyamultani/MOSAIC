@@ -23,6 +23,7 @@ log = logging.getLogger("mosaic.rag.store")
 
 PRIVATE = "private"
 EXTERNAL = "external"
+MIN_SIMILARITY_SCORE = 0.06
 
 
 @dataclass
@@ -133,7 +134,7 @@ class VectorStore:
                 meta=rows[i].meta or {},
             )
             for i in order
-            if float(scores[i]) > 0.01
+            if float(scores[i]) >= MIN_SIMILARITY_SCORE
         ]
 
     def count(self, collection: str, user_id: str | None = None) -> int:
@@ -204,6 +205,7 @@ class QdrantVectorStore(VectorStore):  # pragma: no cover - optional path
                 meta=h.payload,
             )
             for h in hits
+            if float(h.score) >= MIN_SIMILARITY_SCORE
         ]
 
 

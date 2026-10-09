@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import AlertCard from "@/components/AlertCard";
 import EvidenceDrawer from "@/components/EvidenceDrawer";
 import { Alert, api, DashboardData } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 function greeting() {
   const hour = new Date().getHours();
@@ -20,6 +21,7 @@ const STATS = [
 ] as const;
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Alert | null>(null);
@@ -57,13 +59,14 @@ export default function DashboardPage() {
   if (!data) return <p className="text-sm text-ink-faint">Loading…</p>;
 
   const { summary, recent } = data;
+  const userName = user?.name || data.user.name || "there";
 
   return (
     <div className="space-y-9">
       <section>
         <p className="text-sm text-ink-faint">{greeting()}</p>
         <h1 className="mt-1 font-serif text-[30px] leading-tight text-ink">
-          {data.user.name}, here&apos;s what changed.
+          {userName}, here&apos;s what changed.
         </h1>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-soft">
           MOSAIC is watching {summary.nodes} things you own across {summary.edges} relationships,

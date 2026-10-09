@@ -19,6 +19,20 @@ def init_db() -> None:
 
     models.Base.metadata.create_all(bind=engine)
 
+    # SQLite lightweight schema migration for new columns on existing DB files
+    if engine.name == "sqlite":
+        with engine.connect() as conn:
+            from sqlalchemy import inspect, text
+            inspector = inspect(engine)
+
+            if "users" in inspector.get_table_names():
+                user_cols = {c["name"] for c in inspector.get_columns("users")}
+                if "hashed_password" not in user_cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN hashed_password VARCHAR(255) DEFAULT ''"))
+                if "profile_json" not in user_cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN profile_json JSON DEFAULT '{}'"))
+            conn.commit()
+
 
 def get_db() -> Iterator[Session]:
     """FastAPI dependency."""

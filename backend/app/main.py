@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import assistant, documents, graph, profile, radar
+from .api import assistant, auth, documents, graph, profile, radar
 from .config import settings
 from .db import init_db, session_scope
 from .scheduler import start_scheduler, stop_scheduler
@@ -75,6 +75,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(documents.router)
 app.include_router(graph.router)
 app.include_router(radar.router)

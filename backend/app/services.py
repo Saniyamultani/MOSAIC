@@ -7,18 +7,67 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+import hashlib
+import hmac
+import secrets
+
 from .agents.alert import AlertAgent
 from .agents.base import Trace
 from .agents.research import ResearchAgent
 from .config import settings
 from .graphstore.factory import get_graph_store
-from .models import AgentRun, Alert, Document, Entity, ExternalItem, User, utcnow
+from .models import AgentRun, Alert, Document, Entity, ExternalItem, User, UserSession, utcnow
 from .pipeline.graph import build_ingestion_graph, run_monitor_cycle
 
 log = logging.getLogger("mosaic.services")
 
 
-# --- users ------------------------------------------------------------------
+# --- users & authentication --------------------------------------------------
+def hash_password(password: str) -> str:
+    salt = secrets.token_hex(16)
+    pw_hash = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000).hex()
+    return f"{salt}${pw_hash}"
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    if not hashed_password or "$" not in hashed_password:
+        return False
+    try:
+        salt, expected_hash = hashed_password.split("$", 1)
+        pw_hash = hashlib.pbkdf2_hmac("sha256", plain_password.encode("utf-8"), salt.encode("utf-8"), 100000).hex()
+        return hmac.compare_digest(pw_hash, expected_hash)
+    except Exception:
+        return False
+
+
+def create_user_session(db: Session, user_id: str) -> str:
+    token = secrets.token_hex(32)
+    session = UserSession(token=token, user_id=user_id)
+    db.add(session)
+    db.commit()
+    return token
+
+
+def get_user_by_session_token(db: Session, token: str) -> User | None:
+    if not token:
+        return None
+    session = db.get(UserSession, token)
+    if session:
+        return session.user
+    return None
+
+
+def delete_user_session(db: Session, token: str) -> bool:
+    if not token:
+        return False
+    session = db.get(UserSession, token)
+    if session:
+        db.delete(session)
+        db.commit()
+        return True
+    return False
+
+
 def get_or_create_demo_user(db: Session) -> User:
     user = db.execute(
         select(User).where(User.email == settings.demo_user_email)

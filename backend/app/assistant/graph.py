@@ -44,7 +44,7 @@ _CURRENT_KEYWORDS = frozenset({
     "news", "price", "prices", "cost", "costs", "how much does", "recall",
     "update", "updates", "announcement", "policy", "policies", "regulation",
     "regulations", "launch", "launched", "release", "released", "new model",
-    "what is the", "what's the", "stock", "market", "rate", "rates",
+    "stock", "market", "rate", "rates",
     "weather", "time", "date", "day", "what day", "what time",
 })
 
@@ -53,7 +53,7 @@ _STABLE_KEYWORDS = frozenset({
     "my device", "my bill", "my subscription", "my warranty", "my purchase",
     "i bought", "i paid", "when did i", "how much did i", "what did i",
     "my items", "my documents", "my receipts", "my invoices", "my alerts",
-    "what do i own", "show me my", "list my",
+    "what do i own", "show me my", "list my", "order number", "serial number",
 })
 
 
@@ -61,7 +61,12 @@ def _classify_freshness(question: str) -> str:
     """Return 'current', 'stable', or 'mixed' based on question content."""
     low = question.lower()
     is_current = any(kw in low for kw in _CURRENT_KEYWORDS)
-    is_stable = any(kw in low for kw in _STABLE_KEYWORDS)
+    is_stable = any(kw in low for kw in _STABLE_KEYWORDS) or any(kw in low for kw in (
+        "my ", "i own", "i have", "i bought", "i paid", "my phone", "my tv",
+        "my laptop", "my router", "my receipt", "my invoice", "my warranty",
+        "my order", "my bill", "my subscription", "my document", "for my"
+    ))
+
     if is_current and is_stable:
         return "mixed"
     if is_current:

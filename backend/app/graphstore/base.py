@@ -13,14 +13,15 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from .. import textutils as T
-from ..models import Entity, Relationship, utcnow
+from ..models import Alert, Document, Entity, Relationship, utcnow
 
 log = logging.getLogger("mosaic.graph")
 
-# Node types used across the app (kept small on purpose).
+# Node types used across the app ecosystem.
 NODE_TYPES = (
-    "product", "brand", "retailer", "warranty", "subscription",
-    "payment_method", "service", "bill", "event", "policy", "category",
+    "product", "asset", "purchase", "warranty", "subscription",
+    "document", "expense", "bill", "alert", "service", "retailer",
+    "brand", "payment_method", "event", "policy", "category",
 )
 
 
@@ -44,14 +45,16 @@ class GraphStore:
         aliases: list[str] | None = None,
         document_id: str | None = None,
     ) -> Entity:
-        key = f"{type}:{T.normalize_key(name)}"
+        type_norm = type.strip().lower()
+        key = f"{type_norm}:{T.normalize_key(name)}"
         entity = self.db.execute(
             select(Entity).where(Entity.user_id == user_id, Entity.canonical_key == key)
         ).scalar_one_or_none()
+
         if entity is None:
             entity = Entity(
                 user_id=user_id,
-                type=type,
+                type=type_norm,
                 name=name.strip(),
                 canonical_key=key,
                 aliases=sorted({a for a in (aliases or []) if a}),
@@ -83,19 +86,22 @@ class GraphStore:
     ) -> Relationship | None:
         if source_id == target_id:
             return None
+        norm_type = type.strip().upper().replace(" ", "_")
         edge = self.db.execute(
             select(Relationship).where(
-                Relationship.source_id == source_id,
-                Relationship.target_id == target_id,
-                Relationship.type == type,
+                Relationship.user_id == user_id,
+                or_(
+                    (Relationship.source_id == source_id) & (Relationship.target_id == target_id) & (Relationship.type == norm_type),
+                    (Relationship.source_id == target_id) & (Relationship.target_id == source_id) & (Relationship.type == norm_type),
+                ),
             )
-        ).scalar_one_or_none()
+        ).scalars().first()
         if edge is None:
             edge = Relationship(
                 user_id=user_id,
                 source_id=source_id,
                 target_id=target_id,
-                type=type,
+                type=norm_type,
                 attributes=attributes or {},
             )
             self.db.add(edge)
@@ -180,31 +186,112 @@ class GraphStore:
     def view(self, user_id: str) -> GraphView:
         entities = self.entities(user_id)
         edges = self.relationships(user_id)
+
+        node_map: dict[str, dict] = {}
+        edge_map: dict[str, dict] = {}
         degree: dict[str, int] = {}
-        for e in edges:
-            degree[e.source_id] = degree.get(e.source_id, 0) + 1
-            degree[e.target_id] = degree.get(e.target_id, 0) + 1
+
+        for e in entities:
+            node_map[e.id] = {
+                "id": e.id,
+                "type": e.type,
+                "name": e.name,
+                "attributes": e.attributes or {},
+                "aliases": e.aliases or [],
+                "document_id": e.document_id,
+                "degree": 0,
+            }
+
+        for edge in edges:
+            if edge.source_id in node_map and edge.target_id in node_map:
+                edge_key = f"{edge.source_id}:{edge.target_id}:{edge.type}"
+                if edge_key not in edge_map:
+                    edge_map[edge_key] = {
+                        "id": edge.id,
+                        "source": edge.source_id,
+                        "target": edge.target_id,
+                        "type": edge.type,
+                        "attributes": edge.attributes or {},
+                    }
+                    degree[edge.source_id] = degree.get(edge.source_id, 0) + 1
+                    degree[edge.target_id] = degree.get(edge.target_id, 0) + 1
+
+        # Surface active Alerts linked to user entities
+        user_alerts = list(
+            self.db.execute(
+                select(Alert).where(Alert.user_id == user_id, Alert.entity_id.isnot(None))
+            ).scalars()
+        )
+        for alert in user_alerts:
+            if alert.entity_id and alert.entity_id in node_map:
+                alert_node_id = f"alert_{alert.id}"
+                if alert_node_id not in node_map:
+                    node_map[alert_node_id] = {
+                        "id": alert_node_id,
+                        "type": "alert",
+                        "name": alert.headline,
+                        "attributes": {
+                            "severity": alert.severity,
+                            "explanation": alert.explanation,
+                            "confidence": alert.confidence,
+                        },
+                        "aliases": [],
+                        "document_id": None,
+                        "degree": 1,
+                    }
+                edge_key = f"{alert.entity_id}:{alert_node_id}:AFFECTED_BY"
+                if edge_key not in edge_map:
+                    edge_map[edge_key] = {
+                        "id": f"rel_{alert.id}",
+                        "source": alert.entity_id,
+                        "target": alert_node_id,
+                        "type": "AFFECTED_BY",
+                        "attributes": {"severity": alert.severity},
+                    }
+                    degree[alert.entity_id] = degree.get(alert.entity_id, 0) + 1
+                    degree[alert_node_id] = 1
+
+        # Surface confirmed Documents linked to user entities
+        user_docs = list(
+            self.db.execute(
+                select(Document).where(Document.user_id == user_id, Document.status == "confirmed")
+            ).scalars()
+        )
+        for doc in user_docs:
+            linked_entities = [e for e in entities if e.document_id == doc.id]
+            if linked_entities:
+                doc_node_id = f"doc_{doc.id}"
+                if doc_node_id not in node_map:
+                    node_map[doc_node_id] = {
+                        "id": doc_node_id,
+                        "type": "document",
+                        "name": doc.title or doc.filename or "Document",
+                        "attributes": {
+                            "kind": doc.kind,
+                            "filename": doc.filename,
+                            "source_url": doc.source_url,
+                        },
+                        "aliases": [],
+                        "document_id": doc.id,
+                        "degree": len(linked_entities),
+                    }
+                for entity in linked_entities:
+                    edge_key = f"{entity.id}:{doc_node_id}:DOCUMENTED_BY"
+                    if edge_key not in edge_map:
+                        edge_map[edge_key] = {
+                            "id": f"rel_doc_{doc.id}_{entity.id}",
+                            "source": entity.id,
+                            "target": doc_node_id,
+                            "type": "DOCUMENTED_BY",
+                            "attributes": {"kind": doc.kind},
+                        }
+                        degree[entity.id] = degree.get(entity.id, 0) + 1
+                        degree[doc_node_id] = degree.get(doc_node_id, 0) + 1
+
+        for nid, node in node_map.items():
+            node["degree"] = degree.get(nid, 0)
+
         return GraphView(
-            nodes=[
-                {
-                    "id": e.id,
-                    "type": e.type,
-                    "name": e.name,
-                    "attributes": e.attributes or {},
-                    "aliases": e.aliases or [],
-                    "document_id": e.document_id,
-                    "degree": degree.get(e.id, 0),
-                }
-                for e in entities
-            ],
-            edges=[
-                {
-                    "id": e.id,
-                    "source": e.source_id,
-                    "target": e.target_id,
-                    "type": e.type,
-                    "attributes": e.attributes or {},
-                }
-                for e in edges
-            ],
+            nodes=list(node_map.values()),
+            edges=list(edge_map.values()),
         )

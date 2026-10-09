@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 const QUICK_PROMPTS = [
   "What phone do I own?",
@@ -26,6 +27,9 @@ interface ChatSummary {
   message_count: number;
   last_message: string | null;
 }
+
+// ... helper functions omitted ...
+
 
 function renderInlineText(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
@@ -180,12 +184,18 @@ function FormattedMarkdown({ content }: { content: string }) {
 }
 
 export default function Assistant() {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [question, setQuestion] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
+
+  const initialGreeting = user?.name
+    ? `Hello ${user.name}! How can I help you today?`
+    : "Hello! How can I help you today?";
+
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", text: "Hello! How can I help you today?" },
+    { role: "assistant", text: initialGreeting },
   ]);
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [busy, setBusy] = useState(false);
@@ -203,11 +213,11 @@ export default function Assistant() {
     if (open) {
       loadChats();
     }
-  }, [open]);
+  }, [open, user]);
 
   const startNewChat = () => {
     setConversationId(null);
-    setMessages([{ role: "assistant", text: "Hello! How can I help you today?" }]);
+    setMessages([{ role: "assistant", text: initialGreeting }]);
     setError(null);
     setShowSidebar(false);
   };
@@ -294,7 +304,9 @@ export default function Assistant() {
                 {showSidebar ? "Chat" : "History"}
               </button>
               <div>
-                <p className="text-sm font-semibold tracking-normal">MOSAIC Assistant</p>
+                <p className="text-sm font-semibold tracking-normal">
+                  {user?.name ? `${user.name}'s Assistant` : "MOSAIC Assistant"}
+                </p>
                 <p className="text-[11px] text-paper/70">Personal Data + Live Web Research</p>
               </div>
             </div>
